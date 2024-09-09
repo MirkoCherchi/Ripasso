@@ -48,4 +48,7 @@ invio.addEventListener("click", function (event) {
 
   // Pulisci l'input del task
   task.value = "";
+
+  // Riporta il focus sulla texarea
+  task.focus();
 });
