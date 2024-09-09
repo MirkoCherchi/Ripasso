@@ -61,7 +61,3 @@ La **To-Do List App** è un'applicazione web realizzata in JavaScript che consen
 - Browser moderno compatibile con ES6 (JavaScript) e Local Storage.
 - (Opzionale) Server backend o API per la sincronizzazione remota.
 
-## Istruzioni per l'installazione
-1. Clona il repository:  
-   ```bash
-   git clone https://github.com/tuo-username/todo-list-app.git
