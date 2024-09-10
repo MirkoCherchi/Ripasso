@@ -2,39 +2,44 @@ const invio = document.getElementById("aggiungiTask");
 const task = document.getElementById("inserisciTask");
 const ul = document.querySelector("ul");
 
-// Funzioni di gestione del Local Storage
 const localStorageTasksKey = "tasks";
 
+// Recupera le task dal Local Storage
 const getTasksFromLocalStorage = () =>
   JSON.parse(localStorage.getItem(localStorageTasksKey)) || [];
+
+// Salva le task nel Local Storage
 const saveTasksToLocalStorage = (taskList) =>
   localStorage.setItem(localStorageTasksKey, JSON.stringify(taskList));
 
-// Aggiunge una nuova task nel Local Storage
-const addTaskToLocalStorage = (taskText, isCompleted = false) => {
+// Aggiunge una task al Local Storage
+const addTaskToLocalStorage = (taskId, taskText, isCompleted = false) => {
   const taskList = getTasksFromLocalStorage();
-  taskList.push({ text: taskText, completed: isCompleted });
+  taskList.push({ id: taskId, text: taskText, completed: isCompleted });
   saveTasksToLocalStorage(taskList);
 };
 
 // Rimuove una task dal Local Storage
-const removeTaskFromLocalStorage = (taskText) => {
+const removeTaskFromLocalStorage = (taskId) => {
   let taskList = getTasksFromLocalStorage();
-  taskList = taskList.filter((task) => task.text !== taskText);
+  taskList = taskList.filter((task) => task.id !== taskId);
   saveTasksToLocalStorage(taskList);
 };
 
 // Aggiorna lo stato di completamento di una task nel Local Storage
-const updateTaskCompletionInLocalStorage = (taskText, isCompleted) => {
+const updateTaskCompletionInLocalStorage = (taskId, isCompleted) => {
   const taskList = getTasksFromLocalStorage();
   const updatedTaskList = taskList.map((task) =>
-    task.text === taskText ? { ...task, completed: isCompleted } : task
+    task.id === taskId ? { ...task, completed: isCompleted } : task
   );
   saveTasksToLocalStorage(updatedTaskList);
 };
 
-// Funzione per creare una task visivamente
-const createTaskElement = (taskText, isCompleted = false) => {
+// Funzione per generare un ID unico per ogni task
+const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
+
+// Crea un elemento HTML per una task
+const createTaskElement = (taskId, taskText, isCompleted = false) => {
   const li = document.createElement("li");
 
   const checkbox = document.createElement("input");
@@ -54,39 +59,47 @@ const createTaskElement = (taskText, isCompleted = false) => {
 
   li.append(checkbox, p, deleteTask);
 
-  // Listener per rimozione del task
+  // Listener per la rimozione della task
   deleteTask.addEventListener("click", () => {
     ul.removeChild(li);
-    removeTaskFromLocalStorage(taskText);
+    removeTaskFromLocalStorage(taskId);
   });
 
-  // Listener per lo stato di completamento del task
+  // Listener per il cambiamento dello stato della checkbox
   checkbox.addEventListener("change", () => {
     const isChecked = checkbox.checked;
     p.style.textDecoration = isChecked ? "line-through" : "none";
     p.style.color = isChecked ? "red" : "";
-    updateTaskCompletionInLocalStorage(taskText, isChecked);
+    updateTaskCompletionInLocalStorage(taskId, isChecked);
   });
 
   return li;
 };
 
-// Funzione per aggiungere una task alla lista visiva
-const addTaskToList = (taskText, isCompleted = false) => {
-  const taskElement = createTaskElement(taskText, isCompleted);
+// Aggiungi una task alla lista visiva
+const addTaskToList = (taskId, taskText, isCompleted = false) => {
+  const taskElement = createTaskElement(taskId, taskText, isCompleted);
   ul.appendChild(taskElement);
 };
 
-// Funzione per caricare le task salvate dal Local Storage
+// Carica le task dal Local Storage e aggiungile alla lista
 const loadTasksFromLocalStorage = () => {
   const taskList = getTasksFromLocalStorage();
-  taskList.forEach(({ text, completed }) => addTaskToList(text, completed));
+  taskList.forEach(({ id, text, completed }) =>
+    addTaskToList(id, text, completed)
+  );
+};
+
+// Controlla se una task esiste già nella lista
+const taskExists = (taskText) => {
+  const taskList = getTasksFromLocalStorage();
+  return taskList.some((task) => task.text === taskText);
 };
 
 // Al caricamento della pagina, carica le task salvate
 document.addEventListener("DOMContentLoaded", loadTasksFromLocalStorage);
 
-// Aggiungere una nuova task al click del bottone
+// Aggiungi una nuova task al click del bottone
 invio.addEventListener("click", (event) => {
   event.preventDefault();
 
@@ -96,9 +109,16 @@ invio.addEventListener("click", (event) => {
     return;
   }
 
+  if (taskExists(taskText)) {
+    alert("La task esiste già.");
+    return;
+  }
+
+  const taskId = generateUniqueId();
+
   // Aggiungi la task alla lista visiva e al Local Storage
-  addTaskToList(taskText);
-  addTaskToLocalStorage(taskText);
+  addTaskToList(taskId, taskText);
+  addTaskToLocalStorage(taskId, taskText);
 
   // Pulisci l'input e riportalo in focus
   task.value = "";
