@@ -147,3 +147,33 @@ button[type="button"]:hover {
   background-color: #cb1208; /* Darker Bittersweet */
   transform: scale(1.05);
 }
+
+.filters select:hover {
+  background-color: #22b0db;
+}
+
+#filterSelect {
+  padding: 6px;
+  border-radius: 6px;
+  background-color: #22b0db;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  border: none;
+}
+.filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#searchTask {
+  padding: 6px;
+  border-radius: 6px;
+  background-color: #22b0db;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  outline: none;
+}

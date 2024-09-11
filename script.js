@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const localStorageTasksKey = "tasks";
 
+  const filterSelect = document.getElementById("filterSelect");
+
   // Recupera le task dal Local Storage
   const getTasksFromLocalStorage = () =>
     JSON.parse(localStorage.getItem(localStorageTasksKey)) || [];
@@ -136,5 +138,25 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault(); // Impedisce l'inserimento di una nuova riga
       aggiungiTask(); // Chiama la funzione per aggiungere la task
     }
+  });
+
+  //Filtro Task
+
+  function taskFilter(filter) {
+    const allTask = ul.querySelectorAll("li");
+    allTask.forEach((task) => {
+      const isCompleted = task.querySelector("input[type='checkbox']").checked;
+      if (filter === "all") {
+        task.style.display = "";
+      } else if (filter === "completed") {
+        task.style.display = isCompleted ? "" : "none";
+      } else if (filter === "pending") {
+        task.style.display = isCompleted ? "none" : "";
+      }
+    });
+  }
+  filterSelect.addEventListener("change", (e) => {
+    const selectedFilter = e.target.value;
+    taskFilter(selectedFilter);
   });
 });
