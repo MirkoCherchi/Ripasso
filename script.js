@@ -4,13 +4,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const ul = document.querySelector("ul");
 
   const localStorageTasksKey = "tasks";
-
   const filterSelect = document.getElementById("filterSelect");
-
   const searchInput = document.getElementById("searchTask");
 
   let currentSearch = "";
   let currentFilter = "all";
+  let draggedElement = null;
 
   // Recupera le task dal Local Storage
   const getTasksFromLocalStorage = () =>
@@ -44,11 +43,14 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // Funzione per generare un ID unico per ogni task
-  const generateUniqueId = () => "_" + Math.random().toString(36);
+  const generateUniqueId = () =>
+    "_" + Math.random().toString(36).substring(2, 9);
 
   // Crea un elemento HTML per una task
   const createTaskElement = (taskId, taskText, isCompleted = false) => {
     const li = document.createElement("li");
+    li.setAttribute("draggable", true);
+    li.dataset.id = taskId;
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -81,16 +83,55 @@ document.addEventListener("DOMContentLoaded", function () {
       updateTaskCompletionInLocalStorage(taskId, isChecked);
     });
 
+    li.addEventListener("dragstart", (e) => {
+      draggedElement = li;
+      setTimeout(() => li.classList.add("dragging"), 0); // Aggiungi classe per lo stile durante il drag
+    });
+
+    li.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.effectAllowed = "move";
+      if (draggedElement !== li) {
+        li.classList.add("dragover");
+      }
+    });
+
+    li.addEventListener("dragleave", () => {
+      li.classList.remove("dragover");
+    });
+
+    li.addEventListener("drop", (e) => {
+      e.preventDefault();
+      li.classList.remove("dragover");
+
+      if (draggedElement !== li) {
+        const allItems = Array.from(ul.children);
+        const draggedIndex = allItems.indexOf(draggedElement);
+        const targetIndex = allItems.indexOf(li);
+
+        // Se il draggedElement è più grande o uguale all'indice di li
+        if (draggedIndex < targetIndex) {
+          ul.insertBefore(draggedElement, li.nextSibling);
+        } else {
+          ul.insertBefore(draggedElement, li);
+        }
+        reorderTasks();
+      }
+    });
+
+    li.addEventListener("dragend", () => {
+      draggedElement.classList.remove("dragging");
+      draggedElement = null;
+    });
+
     return li;
   };
 
-  // Aggiungi una task alla lista visiva
   const addTaskToList = (taskId, taskText, isCompleted = false) => {
     const taskElement = createTaskElement(taskId, taskText, isCompleted);
     ul.appendChild(taskElement);
   };
 
-  // Carica le task dal Local Storage e aggiungile alla lista
   const loadTasksFromLocalStorage = () => {
     const taskList = getTasksFromLocalStorage();
     taskList.forEach(({ id, text, completed }) =>
@@ -98,13 +139,11 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   };
 
-  // Controlla se una task esiste già nella lista
   const taskExists = (taskText) => {
     const taskList = getTasksFromLocalStorage();
     return taskList.some((task) => task.text === taskText);
   };
 
-  // Funzione per aggiungere una task
   const aggiungiTask = () => {
     const taskText = task.value.trim();
     if (!taskText) {
@@ -119,33 +158,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const taskId = generateUniqueId();
 
-    // Aggiungi la task alla lista visiva e al Local Storage
     addTaskToList(taskId, taskText);
     addTaskToLocalStorage(taskId, taskText);
 
-    // Pulisci l'input e riportalo in focus
     task.value = "";
     task.focus();
   };
 
-  // Al caricamento della pagina, carica le task salvate
+  const reorderTasks = () => {
+    const taskElements = ul.querySelectorAll("li");
+    const newTaskList = [];
+
+    taskElements.forEach((li) => {
+      const taskId = li.dataset.id;
+      const taskText = li.querySelector("p").textContent;
+      const isCompleted = li.querySelector("input[type='checkbox']").checked;
+
+      newTaskList.push({
+        id: taskId,
+        text: taskText,
+        completed: isCompleted,
+      });
+    });
+
+    saveTasksToLocalStorage(newTaskList);
+  };
+
   loadTasksFromLocalStorage();
 
-  // Aggiungi una nuova task al click del bottone
   invio.addEventListener("click", (event) => {
     event.preventDefault();
     aggiungiTask();
   });
 
-  // Aggiungi una nuova task premendo Invio nella textarea
   task.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Impedisce l'inserimento di una nuova riga
-      aggiungiTask(); // Chiama la funzione per aggiungere la task
+      event.preventDefault();
+      aggiungiTask();
     }
   });
-
-  //Filtro Task
 
   function searchAndFilterTask() {
     const allTask = ul.querySelectorAll("li");
@@ -168,6 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
   searchInput.addEventListener("input", (e) => {
     currentSearch = e.target.value;
     searchAndFilterTask();

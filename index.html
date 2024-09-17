@@ -13,23 +13,26 @@
 
     <div class="container">
         <div class="filters">
-            <input type="text" id="searchTask" placeholder="Cerca Task...">
-            <select id="filterSelect">
-                <option value="all">Tutte</option>
-                <option value="completed">Completate</option>
-                <option value="pending">Non Completate</option>
-            </select>
-
+            <div class="filter-item">
+                <label for="searchTask" class="filter-label">Cerca:</label>
+                <input type="text" id="searchTask" placeholder="Cerca Task...">
+            </div>
+            <div class="filter-item">
+                <label for="filterSelect" class="filter-label">Filtra:</label>
+                <select id="filterSelect">
+                    <option value="all">Tutte</option>
+                    <option value="completed">Completate</option>
+                    <option value="pending">Non Completate</option>
+                </select>
+            </div>
         </div>
 
         <form action="">
             <textarea name="Inserisci Task" placeholder="Inserisci un Task" id="inserisciTask"></textarea>
             <button id="aggiungiTask">Aggiungi</button>
-            <ul>
-            </ul>
+            <ul></ul>
         </form>
     </div>
-
 
     <script src="script.js"></script>
 </body>
