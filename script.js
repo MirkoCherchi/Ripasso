@@ -7,6 +7,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const filterSelect = document.getElementById("filterSelect");
 
+  const searchInput = document.getElementById("searchTask");
+
+  let currentSearch = "";
+  let currentFilter = "all";
+
   // Recupera le task dal Local Storage
   const getTasksFromLocalStorage = () =>
     JSON.parse(localStorage.getItem(localStorageTasksKey)) || [];
@@ -39,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // Funzione per generare un ID unico per ogni task
-  const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
+  const generateUniqueId = () => "_" + Math.random().toString(36);
 
   // Crea un elemento HTML per una task
   const createTaskElement = (taskId, taskText, isCompleted = false) => {
@@ -142,21 +147,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
   //Filtro Task
 
-  function taskFilter(filter) {
+  function searchAndFilterTask() {
     const allTask = ul.querySelectorAll("li");
     allTask.forEach((task) => {
+      const taskText = task.querySelector("p").textContent.toLowerCase();
       const isCompleted = task.querySelector("input[type='checkbox']").checked;
-      if (filter === "all") {
+      const isMatch = taskText.includes(currentSearch.toLowerCase());
+      let matchesFilter = true;
+
+      if (currentFilter === "completed") {
+        matchesFilter = isCompleted;
+      } else if (currentFilter === "pending") {
+        matchesFilter = !isCompleted;
+      }
+
+      if (matchesFilter && isMatch) {
         task.style.display = "";
-      } else if (filter === "completed") {
-        task.style.display = isCompleted ? "" : "none";
-      } else if (filter === "pending") {
-        task.style.display = isCompleted ? "none" : "";
+      } else {
+        task.style.display = "none";
       }
     });
   }
+  searchInput.addEventListener("input", (e) => {
+    currentSearch = e.target.value;
+    searchAndFilterTask();
+  });
+
   filterSelect.addEventListener("change", (e) => {
-    const selectedFilter = e.target.value;
-    taskFilter(selectedFilter);
+    currentFilter = e.target.value;
+    searchAndFilterTask();
   });
 });
